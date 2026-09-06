@@ -1,0 +1,18 @@
+version: "2"
+
+linters:
+  default: standard
+  enable:
+    - misspell
+    - revive
+    - gocritic
+    - gosec
+    - exhaustive
+  settings:
+    exhaustive:
+      # the FSM switches use default as the reject/fallback branch on purpose
+      default-signifies-exhaustive: true
+
+formatters:
+  enable:
+    - gofumpt

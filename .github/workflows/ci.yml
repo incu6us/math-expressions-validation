@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # declared minimum and current toolchain
+        go: ["1.24", "1.27"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Install tools
+        run: make install
+
+      - name: Build
+        run: make build
+
+      - name: Lint
+        run: make lint
+
+      - name: Test
+        run: make cover
+
+      - name: Upload coverage to Codecov
+        if: matrix.go == '1.27' # one upload is enough
+        # forks and local act runs have no CODECOV_TOKEN; that must not fail CI
+        continue-on-error: true
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.out
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Vulnerability scan
+        run: make vuln
+
+      - name: Bench
+        run: make bench
+
+      - name: Fuzz
+        run: make fuzz
